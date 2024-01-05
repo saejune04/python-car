@@ -1,7 +1,7 @@
 import pygame
 import math
 from car import Car
-import Button
+from button import Button
 from track import Track
 
 # pygame setup
@@ -29,36 +29,36 @@ car = Car(track)
 
 # 150 x 63 at 1 scale
 undo_button_img = pygame.image.load('./images/undo_btn.png').convert_alpha()
-undo_button = Button.Button(100, 940, undo_button_img, 0.9)
+undo_button = Button(100, 940, undo_button_img, 0.9)
 clearall_button_img = pygame.image.load('./images/clear_all_btn.png').convert_alpha()
-clearall_button = Button.Button(100, 1010, clearall_button_img, 0.9)
+clearall_button = Button(100, 1010, clearall_button_img, 0.9)
 
 edit_startline_button_img = pygame.image.load('./images/edit_startline_btn.png').convert_alpha()
-edit_startline_button = Button.Button(250, 940, edit_startline_button_img, 0.9)
+edit_startline_button = Button(250, 940, edit_startline_button_img, 0.9)
 clear_startline_button_img = pygame.image.load('./images/clear_startline_btn.png').convert_alpha()
-clear_startline_button = Button.Button(250, 1010, clear_startline_button_img, 0.9)
+clear_startline_button = Button(250, 1010, clear_startline_button_img, 0.9)
 
 add_checkpoint_button_img = pygame.image.load('./images/add_checkpoint_btn.png').convert_alpha()
-add_checkpoint_button = Button.Button(400, 940, add_checkpoint_button_img, 0.9)
+add_checkpoint_button = Button(400, 940, add_checkpoint_button_img, 0.9)
 clear_checkpoints_button_img = pygame.image.load('./images/clear_checkpoints_btn.png').convert_alpha()
-clear_checkpoints_button = Button.Button(400, 1010, clear_checkpoints_button_img, 0.9)
+clear_checkpoints_button = Button(400, 1010, clear_checkpoints_button_img, 0.9)
 
 add_boundary_button_img = pygame.image.load('./images/add_boundary_btn.png').convert_alpha()
-add_boundary_button = Button.Button(550, 940, add_boundary_button_img, 0.9)
+add_boundary_button = Button(550, 940, add_boundary_button_img, 0.9)
 clear_boundaries_button_img = pygame.image.load('./images/clear_boundaries_btn.png').convert_alpha()
-clear_boundaries_button = Button.Button(550, 1010, clear_boundaries_button_img, 0.9)
+clear_boundaries_button = Button(550, 1010, clear_boundaries_button_img, 0.9)
 finalize_boundary_button_img = pygame.image.load('./images/finalize_boundary_btn.png').convert_alpha()
-finalize_boundary_button = Button.Button(550, 940, finalize_boundary_button_img, 0.9) 
+finalize_boundary_button = Button(550, 940, finalize_boundary_button_img, 0.9) 
 
 save_button_img = pygame.image.load('./images/save_btn.png').convert_alpha()
-save_button = Button.Button(700, 940, save_button_img, 0.9)
+save_button = Button(700, 940, save_button_img, 0.9)
 load_button_img = pygame.image.load('./images/load_btn.png').convert_alpha()
-load_button = Button.Button(700, 1010, load_button_img, 0.9)
+load_button = Button(700, 1010, load_button_img, 0.9)
 
 change_startpos_button_img = pygame.image.load('./images/change_startpos_btn.png').convert_alpha()
-change_startpos_button = Button.Button(850, 940, change_startpos_button_img, 0.9)
+change_startpos_button = Button(850, 940, change_startpos_button_img, 0.9)
 change_startdir_button_img = pygame.image.load('./images/change_startdir_btn.png').convert_alpha()
-change_startdir_button = Button.Button(850, 1010, change_startdir_button_img, 0.9)
+change_startdir_button = Button(850, 1010, change_startdir_button_img, 0.9)
 
 while running:
     surface.fill("grey")
