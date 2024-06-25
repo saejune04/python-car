@@ -1,6 +1,7 @@
 import json
 import math
 import pygame
+import numpy as np
 
 class Track:
 
@@ -14,7 +15,7 @@ class Track:
     def __init__(self):
         # Track Data
         self.trackpoints = [] # array of arrays of points, each array represents a border (so most likely 2 arrays for 2 borders, inner an outer)
-        self.startLine = [[0, 0], [0, 0]] # array of 2 points
+        self.startLine = [(0, 0), (0, 0)] # array of 2 points
         self.checkpoints = [] # array of arrays of 2 points
         self.startPos = Track.DEFAULT_CAR_START_POS # 1 point
         self.startDir = Track.DEFAULT_CAR_START_DIR # starting orientation of car in radians
@@ -29,6 +30,9 @@ class Track:
         self.isEditingBoundary = False
         self.isEditingStartPos = False
         self.isEditingStartDir = False
+
+        # Show track details
+        self.showCheckpoints = True
 
         # Keeps track of most recently added track feature for UNDO
         # 0 is start line, 1 is checkpoint, 2 + i is boundary array with index i (e.g. 3 on stack means the boundary with index 1)
@@ -47,16 +51,32 @@ class Track:
         self.checkpoints = save["checkpoints"]
         self.startLine = save["startLine"]
 
+        # Tuple-fy the data 'points' (supposed to make it slightly more efficient)
+        for track in self.trackpoints:
+            for i in range(len(track)):
+                track[i] = tuple(track[i])
+
+        for checkpoint in self.checkpoints:
+            for i in range(len(checkpoint)):
+                checkpoint[i] = tuple(checkpoint[i])
+
+        # self.startPos = tuple(self.startPos)
+
+        for i in range(len(self.startLine)):
+            self.startLine[i] = tuple(self.startLine[i])
+
+
     # Saves the track as JSON in the following format:
-    # "startPos": [x, y] // 1 point
+    # "startPos": (x, y) // 1 point
     # "startDir": number
-    # "trackpoints": [[[x, y], [x, y]...], [[x, y], [x, y]...]] // Array of arrays of points
-    # "checkpoints": [[[x, y], [x, y]], [[x, y], [x, y]]...] // Array of arrays of 2 points
-    # "startLine": [[x, y], [x, y]] // Array of 2 points
+    # "trackpoints": [[(x, y), (x, y)...], [(x, y), (x, y)...]] // Array of arrays of points
+    # "checkpoints": [[(x, y), (x, y)], [(x, y), (x, y)]...] // Array of arrays of 2 points
+    # "startLine": [(x, y), (x, y)] // Array of 2 points
     def save(self):
         if not self.editStatus == 0:
             print("Finish editing before saving")
             return
+
         saveFile = json.dumps({
             "startPos": self.startPos,
             "startDir": self.startDir,
@@ -73,7 +93,8 @@ class Track:
         self._updateClickStatus()
         self._handleEdits()
         self._displayStartLine(surface)
-        self._displayCheckpoints(surface)
+        if self.showCheckpoints:
+            self._displayCheckpoints(surface)
         self._displayTrack(surface)
 
     def _displayStartLine(self, surface):
