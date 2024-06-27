@@ -59,11 +59,11 @@ class AICar(car.Car):
 
     # NEW TO AICar: Need to give the car an action, first call initializes a lotta stuff but doesnt move the car
     # if no action is given
-    def update(self, surface, action=-1, epsilon=0):
+    def update(self, surface, action=-1):
         if not self.alive:
             return
     
-        self.act(action=action, epsilon=epsilon)
+        self.act(action=action)
         
         self.framesSinceLastReward += 1
         if self.framesSinceLastReward >= PURGE_FRAME_THRESHOLD:
@@ -113,25 +113,19 @@ class AICar(car.Car):
         state = sensor_data + [self.getSpeed()]
         return state
 
-    def act(self, action=-1, epsilon=0):
-        """Car takes a given action with probability (1 - epsilon)
+    def act(self, action=-1):
+        """Car takes a given action
 
-        Given action should range between 0 and self.numActions inclusive.
-        Takes a random action with probability epsilon.
+        Given action should range between 0 and self.numActions inclusive. If action takes -1, takes no action
         
         Params:
             action: a number between 0 and self.numActions inclusive telling the car what action to take
-            epsilon: probability of which to take a random action
         Returns:
             action: the action that was actually taken
         """
 
         if action == -1:
-            return -1
-        rand = random.random()
-
-        if rand < epsilon:
-            action = random.randint(0, 8)
+            return
         
         if action == 0: # W
             self.accelerate(ACCELERATION)
@@ -148,23 +142,23 @@ class AICar(car.Car):
         elif action == 4: # W + A
             self.accelerate(ACCELERATION)
             self.turn(-TURNING_POWER)
-            self.score += FORWARD_REWARD + TURN_REWARD
+            self.score += (FORWARD_REWARD + TURN_REWARD)
         elif action == 5: # W + D
             self.accelerate(ACCELERATION)
             self.turn(TURNING_POWER)
-            self.score += FORWARD_REWARD + TURN_REWARD
+            self.score += (FORWARD_REWARD + TURN_REWARD)
         elif action == 6: # W + S
             self.accelerate(ACCELERATION - BRAKE)
-            self.score += FORWARD_REWARD + BACKWARDS_REWARD
+            self.score += (FORWARD_REWARD + BACKWARDS_REWARD)
         elif action == 7: # W + S + A
             self.accelerate(ACCELERATION - BRAKE)
             self.turn(-TURNING_POWER)
-            self.score += FORWARD_REWARD + BACKWARDS_REWARD + TURN_REWARD
+            self.score += (FORWARD_REWARD + BACKWARDS_REWARD + TURN_REWARD)
         elif action == 8: # W + S + D
             self.accelerate(ACCELERATION - BRAKE)
             self.turn(TURNING_POWER)
-            self.score += FORWARD_REWARD + BACKWARDS_REWARD + TURN_REWARD
-        return action
+            self.score += (FORWARD_REWARD + BACKWARDS_REWARD + TURN_REWARD)
+        
 
 
     #============================================================================
