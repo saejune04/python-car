@@ -18,7 +18,7 @@ class NeuralNetwork(nn.Module):
             layers.append(nn.Linear(dimensions[i], dimensions[i + 1]))
             if i < len(dimensions) - 2:  # No activation function on the output layer
                 layers.append(nn.ReLU())
-        layers.append(nn.Softmax(dim=0))
+        # layers.append(nn.Softmax(dim=0))
         self.network = nn.Sequential(*layers)
     
     def forward(self, x):

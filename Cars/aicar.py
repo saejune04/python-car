@@ -11,20 +11,13 @@ from utils import (rotateClockwise2d,
                    findIntersectionPoint)
 
 # Score parameters
-CHECKPOINT_REWARD = 50
-REWARD_DECAY = -3
+CHECKPOINT_REWARD = 20
+REWARD_DECAY = -0.1
 PURGE_FRAME_THRESHOLD = 100 # number of frames a car has to get a reward before being killed off
-FORWARD_REWARD = 4
-TURN_REWARD = -1
-BACKWARDS_REWARD = -5
-
-
-
-# RL hyperparameters
-GAMMA = 0.95 # Reward discount factor
-MAX_EPSILON = 1
-MIN_EPSILON = 0.05
-LAMBDA = 0.0005 # Epsilon decay
+FORWARD_REWARD = 0.2
+TURN_REWARD = 0
+BACKWARDS_REWARD = -0.3
+CRASH_REWARD = -50 # Punishment given when car crashes
 
 # Car controls
 ACCELERATION = 1.3
@@ -32,15 +25,10 @@ BRAKE = 0.7
 TURNING_POWER = 1.5 * 0.08726646
 
 class AICar(car.Car):
-    def __init__(self, track, device="cpu", brain_template=None):
+    def __init__(self, track):
         """
         Args:
             track: The track that this AICar will drive and be evaluated on
-            brain_template: A list of numbers representing number of nodes in each layer
-                            of the brain's neural network. If None, then this car will 
-                            not have a brain.
-
-                            A car with no brain cannot have .act() called
         """
         super().__init__(track)
         
@@ -61,26 +49,21 @@ class AICar(car.Car):
                                                           # hardcoded for now, see self._updateSensors() to see all sensors
         self.numActions = 9 # Also hardcoded, see self.act() to see all possible actions
 
-        # AI Stuff!
-        self.device = device
-
-        self.brain = None
-
-        if brain_template:
-            self.brain = NeuralNetwork(brain_template)
-            self.brain.to(self.device)
-            
+        # AI Stuff!            
         self.score = 0
         self.framesSinceLastReward = 0
-
-        self.epsilon = 0.05 # Chance the agent takes a random move
 
 
     # Call this method to update the car every frame
     # Will reset the car if it detects its track is being edited
-    def update(self, surface, leader=False):
+
+    # NEW TO AICar: Need to give the car an action, first call initializes a lotta stuff but doesnt move the car
+    # if no action is given
+    def update(self, surface, action=-1, epsilon=0):
         if not self.alive:
             return
+    
+        self.act(action=action, epsilon=epsilon)
         
         self.framesSinceLastReward += 1
         if self.framesSinceLastReward >= PURGE_FRAME_THRESHOLD:
@@ -95,14 +78,15 @@ class AICar(car.Car):
         self._updateHitboxPoints()
 
         # Just make the car not move after it's moving slowly enough
-        if (self.getTotalVel() < 0.1):
+        if (self.getSpeed() < 0.1):
             self.vel = [0, 0]
 
-        self.score -= REWARD_DECAY # If car doesnt make progress it loses points
+        self.score += REWARD_DECAY # If car doesnt make progress it loses points
 
         if self._isCrashed():
             self.kill()
             return
+        
         if self._passedCheckpoint():
             self.checkpointsPassed += 1
             self.score += CHECKPOINT_REWARD
@@ -117,31 +101,37 @@ class AICar(car.Car):
         if self.drawSensors:
             self._drawSensors(surface)
 
-        # AI Loop
-        if not self.brain:
-            raise Exception("Car has no brain to act!")
-        self.act()
-
-
-        self._drawCar(surface, leader=leader)
+        self._drawCar(surface)
 
 
     #============================================================================
     # AI Stuff
-    def act(self):
-        """Makes an action using its brain"""
+    def getState(self):
+        """Returns the current state of the car"""
+        # Sensor distance + current speed
         sensor_data = self.getSensorData() 
-        input_data = sensor_data + [self.getTotalVel()]
-        input_data = torch.tensor(input_data).to(self.device)
-        out = self.brain(input_data)
+        state = sensor_data + [self.getSpeed()]
+        return state
 
+    def act(self, action=-1, epsilon=0):
+        """Car takes a given action with probability (1 - epsilon)
+
+        Given action should range between 0 and self.numActions inclusive.
+        Takes a random action with probability epsilon.
+        
+        Params:
+            action: a number between 0 and self.numActions inclusive telling the car what action to take
+            epsilon: probability of which to take a random action
+        Returns:
+            action: the action that was actually taken
+        """
+
+        if action == -1:
+            return -1
         rand = random.random()
-        action = -1
 
-        if rand < self.epsilon:
+        if rand < epsilon:
             action = random.randint(0, 8)
-        else:
-            action = torch.argmax(out)
         
         if action == 0: # W
             self.accelerate(ACCELERATION)
@@ -174,7 +164,8 @@ class AICar(car.Car):
             self.accelerate(ACCELERATION - BRAKE)
             self.turn(TURNING_POWER)
             self.score += FORWARD_REWARD + BACKWARDS_REWARD + TURN_REWARD
-        
+        return action
+
 
     #============================================================================
     # Sensors
@@ -274,14 +265,13 @@ class AICar(car.Car):
 
         return (min_distance, best_intersection)
     
+    def kill(self):
+        if not self.autoRespawn:
+            self.alive = False
+        self.score += CRASH_REWARD
 
-    def _drawCar(self, surface, leader=False):
-        """Draw the car on the given surface"""
-        
-        A, B, C, D = self.hitboxPoints
+    def reset(self):
+        super().reset()
+        self.framesSinceLastReward = 0
+        self.score = 0
 
-        # Main car frame
-        if leader:
-            pygame.draw.polygon(surface, 'blue', [A, B, C, D])
-        else:
-            pygame.draw.polygon(surface, 'black', [A, B, C, D])

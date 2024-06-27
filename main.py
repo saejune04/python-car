@@ -2,6 +2,7 @@ import pygame
 from Track.track import Track
 from Controllers.GA_controller import GA_Controller
 from Controllers.user_controller import User_Controller
+from Controllers.DQL_controller import DQL_Controller
 from time import perf_counter
 
 
@@ -16,6 +17,7 @@ def main():
 
     from Buttons.button_handler import handleButtons
     clock = pygame.time.Clock()
+    framerate_cap = 60
     running = True
     numframes = 0
     totaltime = 0
@@ -27,13 +29,18 @@ def main():
     track.load(defaultTrackCode)
 
     # Initialize controller
-    controller = GA_Controller(track, surface, brain_template=[50, 32], num_cars=40)
+    # controller = GA_Controller(track, surface, brain_template=[32, 32], num_cars=40)
     # controller =  User_Controller(track, surface)
+    controller = DQL_Controller(track, surface, brain_template=[128, 128])
 
     if type(controller) == GA_Controller:
         load = input("Load previous best model? (y/n): ")
         if load == "y":
-            controller.loadBestModel()
+            controller.load()
+    if type(controller) == DQL_Controller:
+        load = input("Load previous best model? (y/n): ")
+        if load == "y":
+            controller.load()
 
     while running:
         surface.fill("grey")
@@ -42,7 +49,11 @@ def main():
                 if type(controller) == GA_Controller:
                     save = input("Save best model? (y/n): ")
                     if save == "y":
-                        controller.saveBestModel()
+                        controller.save()
+                if type(controller) == DQL_Controller:
+                    save = input("Save best model? (y/n): ")
+                    if save == "y":
+                        controller.save()
                 running = False
 
         # Render and update
@@ -78,7 +89,7 @@ def main():
 
         pygame.font.init()
         font = pygame.font.SysFont('Comic Sans MS', 10)
-        fps_surface = font.render(str(fps), False, (0, 0, 0))
+        fps_surface = font.render("FPS: " + str(fps), False, (0, 0, 0))
         surface.blit(fps_surface, (20,20))
 
         # flip() the display to put on screen
@@ -90,7 +101,15 @@ def main():
         # limits FPS to 60
         # dt is delta time in seconds since last frame, used for framerate-
         # independent physics.
-        dt = clock.tick(60) / 1000
+
+        # Press 0 for hyperspeed, 9 to go back to 60 fps
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_0]:
+            framerate_cap = 1000
+        if keys[pygame.K_9]:
+            framerate_cap = 60
+
+        dt = clock.tick(framerate_cap) / 1000
 
     pygame.quit()
 

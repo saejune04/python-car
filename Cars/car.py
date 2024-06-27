@@ -47,7 +47,7 @@ class Car:
         self._updateHitboxPoints()
 
         # Just make the car not move after it's moving slowly enough
-        if (self.getTotalVel() < 0.1):
+        if (self.getSpeed() < 0.1):
             self.vel = [0, 0]
         
         if self._isCrashed():
@@ -71,7 +71,7 @@ class Car:
     # in a different direction (the direction the tires face). 
     def turn(self, rad):
         # positive rad turns the car left, negative rad turns the car right
-        self.direction += math.log(self.getTotalVel() + 1) / 3 * rad
+        self.direction += math.log(self.getSpeed() + 1) / 3 * rad
 
     def accelerate(self, boost):
         self.vel[0] += boost * math.cos(self.direction)
@@ -87,11 +87,11 @@ class Car:
         # Reduce the speed in the direction car is currently moving and then
         # accelerate perpendicular to the car
         if goingRight:
-            self.vel[0] = (self.vel[0] * self.driftFactor) + (1 - self.driftFactor) * math.cos(self.direction) * self.getTotalVel()
-            self.vel[1] = (self.vel[1] * self.driftFactor) + (1 - self.driftFactor) * math.sin(self.direction) * self.getTotalVel()
+            self.vel[0] = (self.vel[0] * self.driftFactor) + (1 - self.driftFactor) * math.cos(self.direction) * self.getSpeed()
+            self.vel[1] = (self.vel[1] * self.driftFactor) + (1 - self.driftFactor) * math.sin(self.direction) * self.getSpeed()
         else:
-            self.vel[0] = (self.vel[0] * self.driftFactor) - (1 - self.driftFactor) * math.cos(self.direction) * self.getTotalVel()
-            self.vel[1] = (self.vel[1] * self.driftFactor) - (1 - self.driftFactor) * math.sin(self.direction) * self.getTotalVel()
+            self.vel[0] = (self.vel[0] * self.driftFactor) - (1 - self.driftFactor) * math.cos(self.direction) * self.getSpeed()
+            self.vel[1] = (self.vel[1] * self.driftFactor) - (1 - self.driftFactor) * math.sin(self.direction) * self.getSpeed()
         
     # Fully resets the car to it's starting values
     def reset(self):
@@ -201,5 +201,5 @@ class Car:
 
     #================================================================
     # Calculations
-    def getTotalVel(self):
+    def getSpeed(self):
         return math.sqrt(self.vel[0]**2 + self.vel[1]**2)
